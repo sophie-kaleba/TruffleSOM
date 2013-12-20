@@ -1,6 +1,6 @@
 package som.interpreter.nodes.messages;
 
-import som.interpreter.Arguments.TernaryArguments;
+import som.interpreter.Arguments;
 import som.interpreter.Invokable;
 import som.interpreter.nodes.ExpressionNode;
 import som.interpreter.nodes.TernaryMessageNode;
@@ -226,8 +226,8 @@ public abstract class TernarySendNode extends TernaryMessageNode {
       }
 
       Invokable root = (Invokable) inlinableCallTarget.getRootNode();
-      TernaryArguments args = new TernaryArguments(receiver, argument1,
-          argument2, root.getNumberOfUpvalues(), universe.nilObject);
+      Arguments args = new Arguments(receiver, new Object[] {argument1,
+          argument2}, root.getNumberOfUpvalues(), universe.nilObject);
       return inlinableCallTarget.call(frame.pack(), args);
     }
   }

@@ -1,6 +1,6 @@
 package som.interpreter.nodes.messages;
 
-import som.interpreter.Arguments.UnaryArguments;
+import som.interpreter.Arguments;
 import som.interpreter.Invokable;
 import som.interpreter.nodes.ExpressionNode;
 import som.interpreter.nodes.UnaryMessageNode;
@@ -193,7 +193,7 @@ public abstract class UnarySendNode extends UnaryMessageNode {
       }
 
       Invokable root = (Invokable) inlinableCallTarget.getRootNode();
-      UnaryArguments args = new UnaryArguments(receiver,
+      Arguments args = new Arguments(receiver, null,
           root.getNumberOfUpvalues(), universe.nilObject);
       return inlinableCallTarget.call(frame.pack(), args);
     }

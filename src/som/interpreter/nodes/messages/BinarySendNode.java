@@ -1,6 +1,6 @@
 package som.interpreter.nodes.messages;
 
-import som.interpreter.Arguments.BinaryArguments;
+import som.interpreter.Arguments;
 import som.interpreter.Invokable;
 import som.interpreter.nodes.BinaryMessageNode;
 import som.interpreter.nodes.ExpressionNode;
@@ -229,7 +229,7 @@ public abstract class BinarySendNode extends BinaryMessageNode {
       }
 
       Invokable root = (Invokable) inlinableCallTarget.getRootNode();
-      BinaryArguments args = new BinaryArguments(receiver, argument,
+      Arguments args = new Arguments(receiver, new Object[] {argument},
           root.getNumberOfUpvalues(), universe.nilObject);
       return inlinableCallTarget.call(frame.pack(), args);
     }

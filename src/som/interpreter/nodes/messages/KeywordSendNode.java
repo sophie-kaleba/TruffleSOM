@@ -1,6 +1,6 @@
 package som.interpreter.nodes.messages;
 
-import som.interpreter.Arguments.KeywordArguments;
+import som.interpreter.Arguments;
 import som.interpreter.Invokable;
 import som.interpreter.nodes.ArgumentEvaluationNode;
 import som.interpreter.nodes.ExpressionNode;
@@ -211,7 +211,7 @@ public abstract class KeywordSendNode extends KeywordMessageNode {
       }
 
       Invokable root = (Invokable) inlinableCallTarget.getRootNode();
-      KeywordArguments args = new KeywordArguments(receiver,
+      Arguments args = new Arguments(receiver,
           arguments, root.getNumberOfUpvalues(),
           universe.nilObject);
       return inlinableCallTarget.call(frame.pack(), args);

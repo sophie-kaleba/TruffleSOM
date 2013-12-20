@@ -26,15 +26,19 @@ import som.vmobjects.SObject;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.Frame;
 
-public abstract class Arguments extends com.oracle.truffle.api.Arguments {
+public final class Arguments extends com.oracle.truffle.api.Arguments {
 
   private final Object self;
   private final FrameOnStackMarker onStackMarker;
   private final Object[] upvalues;
 
-  private Arguments(final Object self, final int numUpvalues, final SObject nilObject) {
+  @CompilationFinal private final Object[] arguments;
+
+
+  public Arguments(final Object self, final Object[] arguments, final int numUpvalues, final SObject nilObject) {
     this.self = self;
     this.onStackMarker = new FrameOnStackMarker();
+    this.arguments = arguments;
 
     if (numUpvalues > 0) {
       upvalues = new Object[numUpvalues];
@@ -50,8 +54,6 @@ public abstract class Arguments extends com.oracle.truffle.api.Arguments {
     return self;
   }
 
-  public abstract Object getArgument(final int i);
-
   public FrameOnStackMarker getFrameOnStackMarker() {
     return onStackMarker;
   }
@@ -60,87 +62,12 @@ public abstract class Arguments extends com.oracle.truffle.api.Arguments {
     return upvalues;
   }
 
+  public Object getArgument(final int i) {
+    return arguments[i];
+  }
+
   public static Arguments get(final Frame frame) {
     return frame.getArguments(Arguments.class);
   }
 
-//  public static Arguments getUnary(final VirtualFrame frame) {
-//    return frame.getArguments(UnaryArguments.class);
-//  }
-//
-//  public static Arguments getBinary(final VirtualFrame frame) {
-//    return frame.getArguments(BinaryArguments.class);
-//  }
-//
-//  public static Arguments getTernary(final VirtualFrame frame) {
-//    return frame.getArguments(TernaryArguments.class);
-//  }
-//
-//  public static Arguments getKeyword(final VirtualFrame frame) {
-//    return frame.getArguments(KeywordArguments.class);
-//  }
-
-  public static final class UnaryArguments extends Arguments {
-    public UnaryArguments(final Object self, final int numUpvalues, final SObject nilObject) {
-      super(self, numUpvalues, nilObject);
-    }
-
-    @Override
-    public Object getArgument(final int i) {
-      return null;
-    }
-  }
-
-  public static final class BinaryArguments extends Arguments {
-    private final Object arg;
-    public BinaryArguments(final Object self, final Object arg,
-        final int numUpvalues, final SObject nilObject) {
-      super(self, numUpvalues, nilObject);
-      this.arg = arg;
-    }
-
-    @Override
-    public Object getArgument(final int i) {
-      assert i == 0;
-      return arg;
-    }
-  }
-
-  public static final class TernaryArguments extends Arguments {
-    private final Object arg1;
-    private final Object arg2;
-
-    public TernaryArguments(final Object self, final Object arg1,
-        final Object arg2, final int numUpvalues, final SObject nilObject) {
-      super(self, numUpvalues, nilObject);
-      this.arg1 = arg1;
-      this.arg2 = arg2;
-    }
-
-    @Override
-    public Object getArgument(final int i) {
-      if (i == 0) {
-        return arg1;
-      } else {
-        assert i == 1;
-        return arg2;
-      }
-    }
-  }
-
-  public static final class KeywordArguments extends Arguments {
-    @CompilationFinal
-    private final Object[] arguments;
-
-    public KeywordArguments(final Object self, final Object[] arguments,
-        final int numUpvalues, final SObject nilObject) {
-      super(self, numUpvalues, nilObject);
-      this.arguments = arguments;
-    }
-
-    @Override
-    public Object getArgument(final int i) {
-      return arguments[i];
-    }
-  }
 }

@@ -21,10 +21,6 @@
  */
 package som.interpreter;
 
-import som.interpreter.Arguments.BinaryArguments;
-import som.interpreter.Arguments.KeywordArguments;
-import som.interpreter.Arguments.TernaryArguments;
-import som.interpreter.Arguments.UnaryArguments;
 import som.interpreter.nodes.ArgumentEvaluationNode;
 import som.interpreter.nodes.BinaryMessageNode;
 import som.interpreter.nodes.ExpressionNode;
@@ -225,7 +221,7 @@ public class Method extends Invokable {
 
     @Override
     public Object executeEvaluated(final VirtualFrame frame, final Object receiver) {
-      UnaryArguments args = new UnaryArguments(receiver, numUpvalues, universe.nilObject);
+      Arguments args = new Arguments(receiver, null, numUpvalues, universe.nilObject);
       VirtualFrame childFrame = Truffle.getRuntime().createVirtualFrame(frame.pack(), args, frameDescriptor);
       initializeFrame(childFrame);
       return messageSendExecution(childFrame, expressionOrSequence);
@@ -307,7 +303,7 @@ public class Method extends Invokable {
 
     @Override
     public Object executeEvaluated(final VirtualFrame frame, final Object receiver, final Object argument) {
-      BinaryArguments args = new BinaryArguments(receiver, argument, numUpvalues, universe.nilObject);
+      Arguments args = new Arguments(receiver, new Object[] {argument}, numUpvalues, universe.nilObject);
       VirtualFrame childFrame = Truffle.getRuntime().createVirtualFrame(frame.pack(), args, frameDescriptor);
       initializeFrame(childFrame);
       return messageSendExecution(childFrame, expressionOrSequence);
@@ -398,7 +394,7 @@ public class Method extends Invokable {
 
     @Override
     public Object executeEvaluated(final VirtualFrame frame, final Object receiver, final Object arg1, final Object arg2) {
-      TernaryArguments args = new TernaryArguments(receiver, arg1, arg2,
+      Arguments args = new Arguments(receiver, new Object[] {arg1, arg2},
           numUpvalues, universe.nilObject);
       VirtualFrame childFrame = Truffle.getRuntime().createVirtualFrame(frame.pack(),
           args, frameDescriptor);
@@ -499,7 +495,7 @@ public class Method extends Invokable {
     @Override
     public Object executeEvaluated(final VirtualFrame frame,
         final Object receiver, final Object[] arguments) {
-      KeywordArguments args = new KeywordArguments(receiver, arguments,
+      Arguments args = new Arguments(receiver, arguments,
           numUpvalues, universe.nilObject);
       VirtualFrame childFrame = Truffle.getRuntime().createVirtualFrame(frame.pack(),
           args, frameDescriptor);
