@@ -25,12 +25,12 @@
 
 package som.compiler;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
+
 import som.vm.Universe;
 import som.vmobjects.SClass;
 import som.vmobjects.SInvokable;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 
 public final class Disassembler {
@@ -55,5 +55,4 @@ public final class Disassembler {
     Universe.errorPrintln(m.getInvokable().toString());
     Universe.errorPrintln(indent + ")");
   }
-
 }
