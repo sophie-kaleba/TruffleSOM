@@ -1,6 +1,7 @@
 package som.interpreter.objectstorage;
 
 import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -18,6 +19,8 @@ import som.vm.constants.Nil;
 
 
 public abstract class FieldAccessorNode extends Node {
+  protected static final int LIMIT = 10;
+
   protected final int fieldIndex;
 
   public static ReadFieldNode createRead(final int fieldIndex) {
@@ -66,7 +69,8 @@ public abstract class FieldAccessorNode extends Node {
     public abstract Object executeRead(DynamicObject obj);
 
     @Specialization(guards = {"self.getShape() == cachedShape", "location != null"},
-        assumptions = "cachedShape.getValidAssumption()")
+        assumptions = "cachedShape.getValidAssumption()",
+        limit = "LIMIT")
     protected final Object readSetField(final DynamicObject self,
         @Cached("self.getShape()") final Shape cachedShape,
         @Cached("getLocation(self)") final Location location) {
@@ -74,7 +78,8 @@ public abstract class FieldAccessorNode extends Node {
     }
 
     @Specialization(guards = {"self.getShape() == cachedShape", "location == null"},
-        assumptions = "cachedShape.getValidAssumption()")
+        assumptions = "cachedShape.getValidAssumption()",
+        limit = "LIMIT")
     protected final Object readUnsetField(final DynamicObject self,
         @Cached("self.getShape()") final Shape cachedShape,
         @Cached("getLocation(self)") final Location location) {
@@ -82,11 +87,15 @@ public abstract class FieldAccessorNode extends Node {
     }
 
     @Specialization(guards = "self.updateShape()")
-    public Object updateShapeAndRead(final DynamicObject self) {
+    public final Object updateShapeAndRead(final DynamicObject self) {
       return executeRead(self); // restart execution of the whole node
     }
 
-    // TODO: need a fallback case, uncached...
+    @Specialization(replaces = {"readSetField", "readUnsetField", "updateShapeAndRead"})
+    public final Object readFieldUncached(final DynamicObject receiver) {
+      CompilerAsserts.neverPartOfCompilation("readFieldUncached");
+      return receiver.get(fieldIndex, Nil.nilObject);
+    }
   }
 
   public abstract static class WriteFieldNode extends FieldAccessorNode {
@@ -97,7 +106,8 @@ public abstract class FieldAccessorNode extends Node {
     public abstract Object executeWrite(DynamicObject obj, Object value);
 
     @Specialization(guards = {"self.getShape() == cachedShape", "location != null"},
-        assumptions = {"locationAssignable", "cachedShape.getValidAssumption()"})
+        assumptions = {"locationAssignable", "cachedShape.getValidAssumption()"},
+        limit = "LIMIT")
     public final Object writeFieldCached(final DynamicObject self,
         final Object value,
         @Cached("self.getShape()") final Shape cachedShape,
@@ -115,7 +125,8 @@ public abstract class FieldAccessorNode extends Node {
 
     @Specialization(guards = {"self.getShape() == oldShape", "oldLocation == null"},
         assumptions = {"locationAssignable", "oldShape.getValidAssumption()",
-            "newShape.getValidAssumption()"})
+            "newShape.getValidAssumption()"},
+        limit = "LIMIT")
     public final Object writeUnwrittenField(final DynamicObject self,
         final Object value,
         @Cached("self.getShape()") final Shape oldShape,
