@@ -31,6 +31,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
@@ -141,7 +142,7 @@ public class BasicInterpreterTests {
 
     if (resultType == SClass.class) {
       String expected = (String) expectedResult;
-      String actual = ((SClass) actualResult).getName().getString();
+      String actual = SClass.getName((DynamicObject) actualResult).getString();
       assertEquals(expected, actual);
       return;
     }

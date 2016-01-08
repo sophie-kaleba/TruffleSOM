@@ -8,11 +8,11 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import som.interpreter.InlinerAdaptToEmbeddedOuterContext;
 import som.interpreter.InlinerForLexicallyEmbeddedMethods;
 import som.vm.constants.Nil;
-import som.vmobjects.SObject;
 
 
 public abstract class NonLocalVariableNode extends ContextualNode {
@@ -45,7 +45,7 @@ public abstract class NonLocalVariableNode extends ContextualNode {
     }
 
     @Specialization(guards = "isUninitialized(frame)")
-    public final SObject doNil(final VirtualFrame frame) {
+    public final DynamicObject doNil(final VirtualFrame frame) {
       return Nil.nilObject;
     }
 

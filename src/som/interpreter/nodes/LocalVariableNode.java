@@ -7,11 +7,11 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import som.compiler.Variable.Local;
 import som.interpreter.SplitterForLexicallyEmbeddedCode;
 import som.vm.constants.Nil;
-import som.vmobjects.SObject;
 
 
 public abstract class LocalVariableNode extends ExpressionNode {
@@ -40,7 +40,7 @@ public abstract class LocalVariableNode extends ExpressionNode {
     }
 
     @Specialization(guards = "isUninitialized(frame)")
-    public final SObject doNil(final VirtualFrame frame) {
+    public final DynamicObject doNil(final VirtualFrame frame) {
       return Nil.nilObject;
     }
 

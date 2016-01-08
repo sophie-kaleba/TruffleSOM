@@ -25,12 +25,12 @@ import java.math.BigInteger;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.TypeSystem;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import som.vm.Universe;
 import som.vmobjects.SAbstractObject;
 import som.vmobjects.SArray;
 import som.vmobjects.SBlock;
-import som.vmobjects.SClass;
 import som.vmobjects.SInvokable;
 import som.vmobjects.SObject;
 import som.vmobjects.SSymbol;
@@ -41,17 +41,16 @@ import som.vmobjects.SSymbol;
     BigInteger.class,
     String.class,
     double.class,
-    SClass.class,
-    SObject.class,
     SBlock.class,
     SSymbol.class,
     SInvokable.class,
     SArray.class,
     SAbstractObject.class,
+    DynamicObject.class,
     Object[].class}) // Object[] is only for argument passing
 public class Types {
 
-  public static SClass getClassOf(final Object obj, final Universe universe) {
+  public static DynamicObject getClassOf(final Object obj, final Universe universe) {
     CompilerAsserts.neverPartOfCompilation();
     assert obj != null;
 
@@ -69,6 +68,8 @@ public class Types {
       return universe.stringClass;
     } else if (obj instanceof Double) {
       return universe.doubleClass;
+    } else if (obj instanceof DynamicObject) {
+      return SObject.getSOMClass((DynamicObject) obj);
     }
 
     TruffleCompiler.transferToInterpreter("Should not be reachable");

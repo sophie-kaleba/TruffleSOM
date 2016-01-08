@@ -86,17 +86,17 @@ public final class SObject {
     return (DynamicObject) obj.get(CLASS);
   }
 
-  public static final void setClass(final DynamicObject obj, final DynamicObject value) {
+  public static void setClass(final DynamicObject obj, final DynamicObject value) {
     CompilerAsserts.neverPartOfCompilation("SObject.setClass");
     assert value != null;
     obj.set(CLASS, value);
   }
 
-  public static final long getFieldIndex(final DynamicObject obj, final SSymbol fieldName) {
+  public static long getFieldIndex(final DynamicObject obj, final SSymbol fieldName) {
     return SClass.lookupFieldIndex(getSOMClass(obj), fieldName);
   }
 
-  public static final int getNumberOfFields(final DynamicObject obj) {
+  public static int getNumberOfFields(final DynamicObject obj) {
     throw new NotYetImplementedException();
   }
 }

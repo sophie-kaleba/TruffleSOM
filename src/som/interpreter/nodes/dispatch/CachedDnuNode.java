@@ -4,6 +4,7 @@ import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import som.interpreter.SArguments;
 import som.interpreter.nodes.dispatch.AbstractDispatchNode.AbstractCachedDispatchNode;
@@ -16,7 +17,7 @@ public final class CachedDnuNode extends AbstractCachedDispatchNode {
   private final SSymbol       selector;
   private final DispatchGuard guard;
 
-  public CachedDnuNode(final SClass rcvrClass, final DispatchGuard guard,
+  public CachedDnuNode(final DynamicObject rcvrClass, final DispatchGuard guard,
       final SSymbol selector, final AbstractDispatchNode nextInCache,
       final Universe universe) {
     super(getDnuCallTarget(rcvrClass, universe), nextInCache);
@@ -39,8 +40,9 @@ public final class CachedDnuNode extends AbstractCachedDispatchNode {
     }
   }
 
-  public static CallTarget getDnuCallTarget(final SClass rcvrClass, final Universe universe) {
-    return rcvrClass.lookupInvokable(
+  public static CallTarget getDnuCallTarget(final DynamicObject rcvrClass,
+      final Universe universe) {
+    return SClass.lookupInvokable(rcvrClass,
         universe.symbolFor("doesNotUnderstand:arguments:")).getCallTarget();
   }
 

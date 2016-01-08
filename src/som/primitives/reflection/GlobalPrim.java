@@ -2,6 +2,7 @@ package som.primitives.reflection;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 import bd.primitives.Primitive;
@@ -13,7 +14,6 @@ import som.interpreter.nodes.nary.BinaryExpressionNode.BinarySystemOperation;
 import som.vm.NotYetImplementedException;
 import som.vm.Universe;
 import som.vm.constants.Nil;
-import som.vmobjects.SObject;
 import som.vmobjects.SSymbol;
 
 
@@ -29,7 +29,7 @@ public abstract class GlobalPrim extends BinarySystemOperation {
   }
 
   @Specialization(guards = "receiver == universe.getSystemObject()")
-  public final Object doSObject(final VirtualFrame frame, final SObject receiver,
+  public final Object doSObject(final VirtualFrame frame, final DynamicObject receiver,
       final SSymbol argument) {
     return getGlobal.getGlobal(frame, argument);
   }

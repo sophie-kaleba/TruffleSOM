@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ValueProfile;
 
 import som.interpreter.SomLanguage;
@@ -35,6 +36,7 @@ import som.vm.Universe;
 import som.vmobjects.SArray;
 import som.vmobjects.SClass;
 import som.vmobjects.SInvokable;
+import som.vmobjects.SObject;
 import som.vmobjects.SSymbol;
 
 
@@ -123,51 +125,51 @@ public final class ClassGenerationContext {
   }
 
   @TruffleBoundary
-  public SClass assemble() {
+  public DynamicObject assemble() {
     // build class class name
     String ccname = name.getString() + " class";
 
     // Load the super class
-    SClass superClass = universe.loadClass(superName);
+    DynamicObject superClass = universe.loadClass(superName);
 
     // Allocate the class of the resulting class
-    SClass resultClass = universe.newClass(universe.metaclassClass);
+    DynamicObject resultClass = universe.newClass(universe.metaclassClass);
 
     // Initialize the class of the resulting class
-    resultClass.setInstanceFields(
+    SClass.setInstanceFields(resultClass,
         SArray.create(classFields.toArray(new Object[0])));
-    resultClass.setInstanceInvokables(
+    SClass.setInstanceInvokables(resultClass,
         SArray.create(classMethods.toArray(new Object[0])));
-    resultClass.setName(universe.symbolFor(ccname));
+    SClass.setName(resultClass, universe.symbolFor(ccname));
 
-    SClass superMClass = superClass.getSOMClass(universe);
-    resultClass.setSuperClass(superMClass);
+    DynamicObject superMClass = SObject.getSOMClass(superClass);
+    SClass.setSuperClass(resultClass, superMClass);
 
     // Allocate the resulting class
-    SClass result = universe.newClass(resultClass);
+    DynamicObject result = universe.newClass(resultClass);
 
     // Initialize the resulting class
-    result.setName(name);
-    result.setSuperClass(superClass);
-    result.setInstanceFields(
+    SClass.setName(result, name);
+    SClass.setSuperClass(result, superClass);
+    SClass.setInstanceFields(result,
         SArray.create(instanceFields.toArray(new Object[0])));
-    result.setInstanceInvokables(
+    SClass.setInstanceInvokables(result,
         SArray.create(instanceMethods.toArray(new Object[0])));
 
     return result;
   }
 
   @TruffleBoundary
-  public void assembleSystemClass(final SClass systemClass) {
-    systemClass.setInstanceInvokables(
+  public void assembleSystemClass(final DynamicObject systemClass) {
+    SClass.setInstanceInvokables(systemClass,
         SArray.create(instanceMethods.toArray(new Object[0])));
-    systemClass.setInstanceFields(
+    SClass.setInstanceFields(systemClass,
         SArray.create(instanceFields.toArray(new Object[0])));
     // class-bound == class-instance-bound
-    SClass superMClass = systemClass.getSOMClass(universe);
-    superMClass.setInstanceInvokables(
+    DynamicObject superMClass = SObject.getSOMClass(systemClass);
+    SClass.setInstanceInvokables(superMClass,
         SArray.create(classMethods.toArray(new Object[0])));
-    superMClass.setInstanceFields(
+    SClass.setInstanceFields(superMClass,
         SArray.create(classFields.toArray(new Object[0])));
   }
 

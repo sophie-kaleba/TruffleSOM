@@ -2,6 +2,7 @@ package som.vmobjects;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ValueProfile;
 
 import som.vm.Universe;
@@ -339,7 +340,7 @@ public final class SArray extends SAbstractObject {
   }
 
   @Override
-  public SClass getSOMClass(final Universe universe) {
+  public DynamicObject getSOMClass(final Universe universe) {
     return universe.arrayClass;
   }
 }

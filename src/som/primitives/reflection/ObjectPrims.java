@@ -4,6 +4,7 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import bd.primitives.Primitive;
 import som.interpreter.Types;
@@ -15,7 +16,6 @@ import som.interpreter.nodes.nary.UnaryExpressionNode.UnarySystemOperation;
 import som.vm.Universe;
 import som.vm.constants.Nil;
 import som.vmobjects.SAbstractObject;
-import som.vmobjects.SClass;
 import som.vmobjects.SObject;
 import som.vmobjects.SSymbol;
 
@@ -34,17 +34,17 @@ public final class ObjectPrims {
     }
 
     @Specialization
-    public final Object doSObject(final SObject receiver, final long idx) {
+    public final Object doSObject(final DynamicObject receiver, final long idx) {
       return dispatch.executeDispatch(receiver, (int) idx - 1);
     }
 
     @Override
     public final Object executeEvaluated(final VirtualFrame frame,
         final Object receiver, final Object firstArg) {
-      assert receiver instanceof SObject;
+      assert receiver instanceof DynamicObject;
       assert firstArg instanceof Long;
 
-      SObject rcvr = (SObject) receiver;
+      DynamicObject rcvr = (DynamicObject) receiver;
       long idx = (long) firstArg;
       return doSObject(rcvr, idx);
     }
@@ -63,7 +63,8 @@ public final class ObjectPrims {
     }
 
     @Specialization
-    public final Object doSObject(final SObject receiver, final long idx, final Object val) {
+    public final Object doSObject(final DynamicObject receiver, final long idx,
+        final Object val) {
       dispatch.executeDispatch(receiver, (int) idx - 1, val);
       return val;
     }
@@ -71,11 +72,11 @@ public final class ObjectPrims {
     @Override
     public final Object executeEvaluated(final VirtualFrame frame,
         final Object receiver, final Object firstArg, final Object secondArg) {
-      assert receiver instanceof SObject;
+      assert receiver instanceof DynamicObject;
       assert firstArg instanceof Long;
       assert secondArg != null;
 
-      SObject rcvr = (SObject) receiver;
+      DynamicObject rcvr = (DynamicObject) receiver;
       long idx = (long) firstArg;
       return doSObject(rcvr, idx, secondArg);
     }
@@ -85,9 +86,9 @@ public final class ObjectPrims {
   @Primitive(className = "Object", primitive = "instVarNamed:", selector = "instVarNamed:")
   public abstract static class InstVarNamedPrim extends BinaryExpressionNode {
     @Specialization
-    public final Object doSObject(final SObject receiver, final SSymbol fieldName) {
+    public final Object doSObject(final DynamicObject receiver, final SSymbol fieldName) {
       CompilerAsserts.neverPartOfCompilation();
-      return receiver.getField(receiver.getFieldIndex(fieldName));
+      return receiver.get(SObject.getFieldIndex(receiver, fieldName), Nil.nilObject);
     }
   }
 
@@ -105,12 +106,17 @@ public final class ObjectPrims {
   @Primitive(className = "Object", primitive = "class")
   public abstract static class ClassPrim extends UnarySystemOperation {
     @Specialization
-    public final SClass doSAbstractObject(final SAbstractObject receiver) {
+    public final DynamicObject doSAbstractObject(final SAbstractObject receiver) {
       return receiver.getSOMClass(universe);
     }
 
     @Specialization
-    public final SClass doObject(final Object receiver) {
+    public final DynamicObject doDynamicObject(final DynamicObject receiver) {
+      return SObject.getSOMClass(receiver);
+    }
+
+    @Specialization
+    public final DynamicObject doObject(final Object receiver) {
       return Types.getClassOf(receiver, universe);
     }
   }

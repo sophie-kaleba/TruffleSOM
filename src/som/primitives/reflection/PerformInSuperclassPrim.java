@@ -5,10 +5,10 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import bd.primitives.Primitive;
 import som.interpreter.nodes.nary.TernaryExpressionNode;
-import som.vmobjects.SAbstractObject;
 import som.vmobjects.SClass;
 import som.vmobjects.SInvokable;
 import som.vmobjects.SSymbol;
@@ -20,10 +20,10 @@ public abstract class PerformInSuperclassPrim extends TernaryExpressionNode {
   @Child private IndirectCallNode call = Truffle.getRuntime().createIndirectCallNode();
 
   @Specialization
-  public final Object doSAbstractObject(final SAbstractObject receiver, final SSymbol selector,
-      final SClass clazz) {
+  public final Object doSAbstractObject(final Object receiver, final SSymbol selector,
+      final DynamicObject clazz) {
     CompilerAsserts.neverPartOfCompilation("PerformInSuperclassPrim");
-    SInvokable invokable = clazz.lookupInvokable(selector);
+    SInvokable invokable = SClass.lookupInvokable(clazz, selector);
     return call.call(invokable.getCallTarget(), new Object[] {receiver});
   }
 }

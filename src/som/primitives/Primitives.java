@@ -138,18 +138,18 @@ public final class Primitives extends PrimitiveLoader<Universe, ExpressionNode, 
     }
 
     for (Entry<SSymbol, Specializer<Universe, ExpressionNode, SSymbol>> e : prims.entrySet()) {
-      SClass target;
+      DynamicObject target;
       if (e.getValue().classSide()) {
         target = SObject.getSOMClass(clazz);
       } else {
         target = clazz;
       }
 
-      SInvokable ivk = target.lookupInvokable(e.getKey());
+      SInvokable ivk = SClass.lookupInvokable(target, e.getKey());
       assert ivk != null : "Lookup of " + e.getKey().toString() + " failed in "
-          + target.getName().getString() + ". Can't install a primitive for it.";
+          + SClass.getName(target).getString() + ". Can't install a primitive for it.";
       SInvokable prim = constructPrimitive(e.getKey(), context.getLanguage(), e.getValue());
-      target.addInstanceInvokable(prim);
+      SClass.addInstancePrimitive(target, prim, displayWarning);
     }
   }
 

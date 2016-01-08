@@ -3,7 +3,9 @@ package som.primitives.arithmetic;
 import java.math.BigInteger;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import bd.primitives.Primitive;
 import som.vmobjects.SClass;
@@ -11,6 +13,7 @@ import som.vmobjects.SSymbol;
 
 
 @GenerateNodeFactory
+@ImportStatic(SClass.class)
 @Primitive(className = "Integer", primitive = "+")
 @Primitive(className = "Double", primitive = "+")
 @Primitive(selector = "+")
@@ -71,9 +74,9 @@ public abstract class AdditionPrim extends ArithmeticPrim {
     return doDouble(left, (double) right);
   }
 
-  @Specialization
-  public final String doString(final String left, final SClass right) {
-    return left + right.getName().getString();
+  @Specialization(guards = "isSClass(right)")
+  public final String doString(final String left, final DynamicObject right) {
+    return left + SClass.getName(right).getString();
   }
 
   @Specialization

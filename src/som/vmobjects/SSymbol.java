@@ -24,6 +24,8 @@
 
 package som.vmobjects;
 
+import com.oracle.truffle.api.object.DynamicObject;
+
 import som.vm.Universe;
 
 
@@ -38,7 +40,7 @@ public final class SSymbol extends SAbstractObject {
   }
 
   @Override
-  public SClass getSOMClass(final Universe universe) {
+  public DynamicObject getSOMClass(final Universe universe) {
     return universe.symbolClass;
   }
 

@@ -5,6 +5,7 @@ import static som.interpreter.TruffleCompiler.transferToInterpreterAndInvalidate
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
 
 import som.interpreter.Types;
 import som.interpreter.nodes.MessageSendNode.GenericMessageSendNode;
@@ -48,8 +49,8 @@ public final class UninitializedDispatchNode extends AbstractDispatchNode {
     }
 
     if (chainDepth < INLINE_CACHE_SIZE) {
-      SClass rcvrClass = Types.getClassOf(rcvr, universe);
-      SInvokable method = rcvrClass.lookupInvokable(selector);
+      DynamicObject rcvrClass = Types.getClassOf(rcvr, universe);
+      SInvokable method = SClass.lookupInvokable(rcvrClass, selector);
       CallTarget callTarget;
       if (method != null) {
         callTarget = method.getCallTarget();
