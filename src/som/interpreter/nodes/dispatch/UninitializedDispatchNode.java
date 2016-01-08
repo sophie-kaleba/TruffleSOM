@@ -39,6 +39,13 @@ public final class UninitializedDispatchNode extends AbstractDispatchNode {
     Object rcvr = arguments[0];
     assert rcvr != null;
 
+    if (rcvr instanceof DynamicObject) {
+      DynamicObject r = (DynamicObject) rcvr;
+      if (r.updateShape() && first != this) { // if first is this, short cut and directly continue...
+        return first;
+      }
+    }
+
     if (chainDepth < INLINE_CACHE_SIZE) {
       DynamicObject rcvrClass = Types.getClassOf(rcvr, universe);
       SInvokable method = SClass.lookupInvokable(rcvrClass, selector);
