@@ -32,6 +32,7 @@ import java.util.Map.Entry;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -97,6 +98,7 @@ import som.vm.Universe;
 import som.vmobjects.SClass;
 import som.vmobjects.SInvokable;
 import som.vmobjects.SInvokable.SMethod;
+import som.vmobjects.SObject;
 import som.vmobjects.SSymbol;
 
 
@@ -125,12 +127,12 @@ public final class Primitives extends PrimitiveLoader<Universe, ExpressionNode, 
     initialize();
   }
 
-  public void loadPrimitives(final SClass clazz, final boolean displayWarning) {
+  public void loadPrimitives(final DynamicObject clazz, final boolean displayWarning) {
     HashMap<SSymbol, Specializer<Universe, ExpressionNode, SSymbol>> prims =
-        primitives.get(clazz.getName());
+        primitives.get(SClass.getName(clazz));
     if (prims == null) {
       if (displayWarning) {
-        Universe.errorPrintln("No primitives found for " + clazz.getName().getString());
+        Universe.errorPrintln("No primitives found for " + SClass.getName(clazz).getString());
       }
       return;
     }
@@ -138,7 +140,7 @@ public final class Primitives extends PrimitiveLoader<Universe, ExpressionNode, 
     for (Entry<SSymbol, Specializer<Universe, ExpressionNode, SSymbol>> e : prims.entrySet()) {
       SClass target;
       if (e.getValue().classSide()) {
-        target = clazz.getSOMClass(context);
+        target = SObject.getSOMClass(clazz);
       } else {
         target = clazz;
       }
