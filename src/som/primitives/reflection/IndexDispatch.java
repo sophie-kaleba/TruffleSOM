@@ -8,8 +8,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import som.interpreter.nodes.dispatch.DispatchChain;
 import som.interpreter.objectstorage.FieldAccessorNode;
-import som.interpreter.objectstorage.FieldAccessorNode.AbstractReadFieldNode;
-import som.interpreter.objectstorage.FieldAccessorNode.AbstractWriteFieldNode;
+import som.interpreter.objectstorage.FieldAccessorNode.ReadFieldNode;
+import som.interpreter.objectstorage.FieldAccessorNode.WriteFieldNode;
 import som.vm.Universe;
 import som.vmobjects.SClass;
 import som.vmobjects.SObject;
@@ -88,15 +88,16 @@ public abstract class IndexDispatch extends Node implements DispatchChain {
   }
 
   private static final class CachedReadDispatchNode extends IndexDispatch {
-    private final int                    index;
-    private final DynamicObject          clazz;
-    @Child private AbstractReadFieldNode access;
+    private final int            index;
+    private final DynamicObject  clazz;
+    @Child private ReadFieldNode access;
     // TODO: have a second cached class for the writing...
     @Child private IndexDispatch next;
 
     CachedReadDispatchNode(final DynamicObject clazz, final int index,
         final IndexDispatch next, final int depth) {
       super(depth, next.universe);
+      assert SClass.isSClass(clazz);
       this.index = index;
       this.clazz = clazz;
       this.next = next;
@@ -126,10 +127,10 @@ public abstract class IndexDispatch extends Node implements DispatchChain {
   }
 
   private static final class CachedWriteDispatchNode extends IndexDispatch {
-    private final int                     index;
-    private final DynamicObject           clazz;
-    @Child private AbstractWriteFieldNode access;
-    @Child private IndexDispatch          next;
+    private final int             index;
+    private final DynamicObject   clazz;
+    @Child private WriteFieldNode access;
+    @Child private IndexDispatch  next;
 
     CachedWriteDispatchNode(final DynamicObject clazz, final int index,
         final IndexDispatch next, final int depth) {
