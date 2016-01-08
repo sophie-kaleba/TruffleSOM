@@ -25,10 +25,8 @@
 package som.vmobjects;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.FinalLocationException;
-import com.oracle.truffle.api.object.IncompatibleLocationException;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Location;
 import com.oracle.truffle.api.object.ObjectType;
@@ -48,26 +46,20 @@ public final class SObject {
   protected static final Layout LAYOUT = Layout.createLayout();
 
   // Object shape with property for a class
-  protected static final Shape  SOBJECT_SHAPE  =
-      LAYOUT.createShape(SOBJECT_TYPE).defineProperty(CLASS, Nil.nilObject, 0);
-  private static final Location CLASS_LOCATION =
-      SOBJECT_SHAPE.getProperty(CLASS).getLocation();
+  protected static final Shape SOBJECT_SHAPE = LAYOUT.
+      createShape(SOBJECT_TYPE).defineProperty(CLASS, Nil.nilObject, 0);
+  private static final DynamicObjectFactory SOBJECT_FACTORY = SOBJECT_SHAPE.createFactory();
+
+  private static final Location CLASS_LOCATION = SOBJECT_SHAPE.getProperty(CLASS).getLocation();
 
   private SObject() {} // this class cannot be instantiated, it provides only static helpers
 
   public static DynamicObject create(final DynamicObject instanceClass) {
-    DynamicObject obj = LAYOUT.newInstance(SOBJECT_SHAPE);
-    try {
-      CLASS_LOCATION.set(obj, instanceClass);
-    } catch (IncompatibleLocationException | FinalLocationException e) {
-      CompilerDirectives.transferToInterpreter();
-      throw new RuntimeException("This should never happen!");
-    }
-    return obj;
+    return SOBJECT_FACTORY.newInstance(instanceClass);
   }
 
   public static DynamicObject create(final int numFields) {
-    return LAYOUT.newInstance(SOBJECT_SHAPE);
+    return SOBJECT_FACTORY.newInstance(Nil.nilObject);
   }
 
   public static boolean isSObject(final DynamicObject obj) {
