@@ -46,11 +46,12 @@ public final class SObject {
   protected static final Layout LAYOUT = Layout.createLayout();
 
   // Object shape with property for a class
-  protected static final Shape SOBJECT_SHAPE = LAYOUT.
-      createShape(SOBJECT_TYPE).defineProperty(CLASS, Nil.nilObject, 0);
+  protected static final Shape              SOBJECT_SHAPE   =
+      LAYOUT.createShape(SOBJECT_TYPE).defineProperty(CLASS, Nil.nilObject, 0);
   private static final DynamicObjectFactory SOBJECT_FACTORY = SOBJECT_SHAPE.createFactory();
 
-  private static final Location CLASS_LOCATION = SOBJECT_SHAPE.getProperty(CLASS).getLocation();
+  private static final Location CLASS_LOCATION =
+      SOBJECT_SHAPE.getProperty(CLASS).getLocation();
 
   private SObject() {} // this class cannot be instantiated, it provides only static helpers
 
@@ -78,7 +79,7 @@ public final class SObject {
     return (DynamicObject) obj.get(CLASS);
   }
 
-  public static void setClass(final DynamicObject obj, final DynamicObject value) {
+  public static void internalSetClass(final DynamicObject obj, final DynamicObject value) {
     CompilerAsserts.neverPartOfCompilation("SObject.setClass");
     assert obj != null;
     assert value != null;

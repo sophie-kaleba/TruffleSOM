@@ -342,7 +342,7 @@ public final class Universe {
     DynamicObject nilObject = Nil.nilObject;
 
     // Setup the class reference for the nil object
-    SObject.setClass(nilObject, nilClass);
+    SObject.internalSetClass(nilObject, nilClass);
 
     // Initialize the system classes.
     initializeSystemClass(objectClass, null, "Object");
@@ -449,10 +449,7 @@ public final class Universe {
   private static DynamicObject newMetaclassClass() {
     // Allocate the metaclass classes
     DynamicObject result = SClass.create(0);
-    SObject.setClass(result, SClass.create(0));
-
-    // Setup the metaclass hierarchy
-    SObject.setClass(SObject.getSOMClass(result), result);
+    SObject.internalSetClass(result, SClass.create(result));
     return result;
   }
 
@@ -464,15 +461,7 @@ public final class Universe {
 
   @TruffleBoundary
   private DynamicObject newSystemClass() {
-    // Allocate the new system class
-    DynamicObject systemClass = SClass.create(0);
-
-    // Setup the metaclass hierarchy
-    SObject.setClass(systemClass, SClass.create(0));
-    SObject.setClass(SObject.getSOMClass(systemClass), metaclassClass);
-
-    // Return the freshly allocated system class
-    return systemClass;
+    return SClass.create(SClass.create(metaclassClass));
   }
 
   private void initializeSystemClass(final DynamicObject systemClass,
