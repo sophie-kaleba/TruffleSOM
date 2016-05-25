@@ -7,7 +7,8 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import som.interpreter.SArguments;
-import som.interpreter.Types;
+import som.primitives.reflection.ObjectPrims.ClassPrim;
+import som.primitives.reflection.ObjectPrimsFactory.ClassPrimFactory;
 import som.vm.Universe;
 import som.vmobjects.SArray;
 import som.vmobjects.SClass;
@@ -17,6 +18,7 @@ import som.vmobjects.SSymbol;
 
 public final class GenericDispatchNode extends AbstractDispatchNode {
   @Child private IndirectCallNode call;
+  @Child private ClassPrim        getClass;
   protected final SSymbol         selector;
   private final Universe          universe;
 
@@ -24,13 +26,16 @@ public final class GenericDispatchNode extends AbstractDispatchNode {
     this.selector = selector;
     this.universe = universe;
     call = Truffle.getRuntime().createIndirectCallNode();
+    getClass = ClassPrimFactory.create(null);
   }
 
   @Override
   public Object executeDispatch(
       final VirtualFrame frame, final Object[] arguments) {
+    Universe.callerNeedsToBeOptimized("We should not reach this, ideally, in benchmark code");
+
     Object rcvr = arguments[0];
-    DynamicObject rcvrClass = Types.getClassOf(rcvr, universe);
+    DynamicObject rcvrClass = (DynamicObject) getClass.executeEvaluated(null, rcvr);
     SInvokable method = SClass.lookupInvokable(rcvrClass, selector);
 
     CallTarget target;
