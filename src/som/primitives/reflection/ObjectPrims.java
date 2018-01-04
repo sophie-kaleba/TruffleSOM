@@ -104,6 +104,7 @@ public final class ObjectPrims {
   @GenerateNodeFactory
   @Primitive(className = "Object", primitive = "class")
   public abstract static class ClassPrim extends UnarySystemOperation {
+
     @Specialization
     public final DynamicObject doSAbstractObject(final SAbstractObject receiver) {
       return receiver.getSOMClass(universe);
