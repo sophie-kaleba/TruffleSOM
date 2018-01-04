@@ -27,6 +27,7 @@ public final class GenericDispatchNode extends AbstractDispatchNode {
     this.universe = universe;
     call = Truffle.getRuntime().createIndirectCallNode();
     getClass = ClassPrimFactory.create(null);
+    getClass.initialize(universe);
   }
 
   @Override
