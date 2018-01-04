@@ -96,11 +96,15 @@ public final class Universe {
 
   public static void main(final String[] arguments) {
     Value returnCode = eval(arguments);
-    Object o = returnCode.get();
-    if (o instanceof SObject) {
+    try {
+      Object o = returnCode.get();
+      if (o instanceof SObject) {
+        System.exit(0);
+      } else {
+        System.exit(returnCode.as(Integer.class));
+      }
+    } catch (Throwable t) {
       System.exit(0);
-    } else {
-      System.exit(returnCode.as(Integer.class));
     }
   }
 
