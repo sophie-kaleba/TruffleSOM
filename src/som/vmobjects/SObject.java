@@ -57,13 +57,13 @@ public final class SObject {
     CompilerAsserts.neverPartOfCompilation("Basic create without factory caching");
     DynamicObjectFactory factory = SClass.getFactory(instanceClass);
     assert factory != NIL_DUMMY_FACTORY;
-    return factory.newInstance(instanceClass);
+    return factory.newInstance();
   }
 
   public static DynamicObject createNil() {
     // TODO: this is work in progress, the class should go as shared data into the shape
     // TODO: ideally, nil is like in SOMns an SObjectWithoutFields
-    return NIL_DUMMY_FACTORY.newInstance(new Object[] { null });
+    return NIL_DUMMY_FACTORY.newInstance(new Object[] {});
   }
 
   public static boolean isSObject(final DynamicObject obj) {
@@ -87,7 +87,6 @@ public final class SObject {
   }
 
   public static DynamicObject getSOMClass(final DynamicObject obj) {
-//    CompilerAsserts.neverPartOfCompilation("Caller needs to be optimized");
     return (DynamicObject) obj.getShape().getSharedData();
   }
 
