@@ -31,7 +31,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
@@ -125,31 +124,32 @@ public class BasicInterpreterTests {
     this.resultType = resultType;
   }
 
-  protected void assertEqualsSOMValue(final Object expectedResult, final Object actualResult) {
+  protected void assertEqualsSOMValue(final Object expectedResult, final Value actualResult)
+      throws ReflectiveOperationException, SecurityException, IllegalArgumentException {
     if (resultType == Long.class) {
       long expected = (int) expectedResult;
-      long actual = (long) actualResult;
+      long actual = actualResult.as(Long.class);
       assertEquals(expected, actual);
       return;
     }
 
     if (resultType == Double.class) {
       double expected = (double) expectedResult;
-      double actual = (double) actualResult;
+      double actual = actualResult.as(Double.class);
       assertEquals(expected, actual, 1e-15);
       return;
     }
 
     if (resultType == SClass.class) {
       String expected = (String) expectedResult;
-      String actual = SClass.getName((DynamicObject) actualResult).getString();
+      String actual = TruffleAccessor.getSomClassName(actualResult);
       assertEquals(expected, actual);
       return;
     }
 
     if (resultType == SSymbol.class) {
       String expected = (String) expectedResult;
-      String actual = ((SSymbol) actualResult).getString();
+      String actual = actualResult.as(SSymbol.class).getString();
       assertEquals(expected, actual);
       return;
     }
@@ -157,7 +157,8 @@ public class BasicInterpreterTests {
   }
 
   @Test
-  public void testBasicInterpreterBehavior() {
+  public void testBasicInterpreterBehavior()
+      throws ReflectiveOperationException, SecurityException, IllegalArgumentException {
     Builder builder = PolyglotEngine.newBuilder();
     builder.config(SomLanguage.MIME_TYPE, SomLanguage.CLASS_PATH,
         "Smalltalk:TestSuite/BasicInterpreterTests");
@@ -167,6 +168,6 @@ public class BasicInterpreterTests {
     PolyglotEngine engine = builder.build();
     Value actualResult = engine.eval(SomLanguage.START);
 
-    assertEqualsSOMValue(expectedResult, actualResult.as(Object.class));
+    assertEqualsSOMValue(expectedResult, actualResult);
   }
 }

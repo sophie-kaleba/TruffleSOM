@@ -33,7 +33,6 @@ import org.junit.runners.Parameterized.Parameters;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
 
 import som.vm.Universe;
-import som.vmobjects.SObject;
 
 
 @RunWith(Parameterized.class)
@@ -79,13 +78,11 @@ public class SomTests {
   }
 
   @Test
-  public void testSomeTest() {
+  public void testSomeTest() throws ReflectiveOperationException {
     Value returnCode = Universe.eval(
         new String[] {"-cp", "Smalltalk", "TestSuite/TestHarness.som", testName});
-    Object obj = returnCode.get();
-    if (obj instanceof SObject) {
-      assertEquals("System",
-          ((SObject) obj).getSOMClass(null).getName().getString());
+    if (TruffleAccessor.isDynamicObject(returnCode)) {
+      assertEquals("System", TruffleAccessor.getSomObjectClassName(returnCode));
     } else {
       assertEquals(0, (int) returnCode.as(Integer.class));
     }
