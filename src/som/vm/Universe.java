@@ -547,7 +547,7 @@ public final class Universe {
     assert getGlobal(name) == null;
 
     // Get the block class for blocks with the given number of arguments
-    DynamicObject result = loadClass(name, null);
+    DynamicObject result = loadClass(name);
 
     blockClasses[numberOfArguments] = result;
   }
