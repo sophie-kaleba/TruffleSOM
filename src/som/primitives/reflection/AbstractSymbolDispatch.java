@@ -77,7 +77,7 @@ public abstract class AbstractSymbolDispatch extends Node {
   public Object doUncached(final Object receiver, final SSymbol selector, final Object argsArr,
       @Cached("create()") final IndirectCallNode call) {
     SInvokable invokable =
-        SClass.lookupInvokable(Types.getClassOf(receiver, universe), selector);
+        SClass.lookupInvokable(Types.getClassOf(receiver, universe), selector, universe);
 
     Object[] arguments = {receiver};
 
@@ -89,7 +89,7 @@ public abstract class AbstractSymbolDispatch extends Node {
       @Cached("create()") final IndirectCallNode call,
       @Cached("createArgArrayNode()") final ToArgumentsArrayNode toArgArray) {
     SInvokable invokable =
-        SClass.lookupInvokable(Types.getClassOf(receiver, universe), selector);
+        SClass.lookupInvokable(Types.getClassOf(receiver, universe), selector, universe);
 
     Object[] arguments = toArgArray.executedEvaluated(argsArr, receiver);
 

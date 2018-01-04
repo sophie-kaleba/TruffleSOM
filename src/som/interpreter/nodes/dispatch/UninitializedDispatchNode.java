@@ -39,14 +39,15 @@ public final class UninitializedDispatchNode extends AbstractDispatchNode {
 
     if (rcvr instanceof DynamicObject) {
       DynamicObject r = (DynamicObject) rcvr;
-      if (r.updateShape() && first != this) { // if first is this, short cut and directly continue...
+      // if first is this, short cut and directly continue...
+      if (r.updateShape() && first != this) {
         return first;
       }
     }
 
     if (chainDepth < INLINE_CACHE_SIZE) {
       DynamicObject rcvrClass = Types.getClassOf(rcvr, universe);
-      SInvokable method = SClass.lookupInvokable(rcvrClass, selector);
+      SInvokable method = SClass.lookupInvokable(rcvrClass, selector, universe);
       CallTarget callTarget;
       if (method != null) {
         callTarget = method.getCallTarget();
@@ -78,8 +79,7 @@ public final class UninitializedDispatchNode extends AbstractDispatchNode {
   @Override
   public Object executeDispatch(final VirtualFrame frame, final Object[] arguments) {
     transferToInterpreterAndInvalidate("Initialize a dispatch node.");
-    return specialize(arguments).
-        executeDispatch(frame, arguments);
+    return specialize(arguments).executeDispatch(frame, arguments);
   }
 
   @Override

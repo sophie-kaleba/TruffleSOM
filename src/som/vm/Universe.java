@@ -35,6 +35,8 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.vm.PolyglotEngine;
 import com.oracle.truffle.api.vm.PolyglotEngine.Builder;
 import com.oracle.truffle.api.vm.PolyglotEngine.Value;
@@ -127,6 +129,15 @@ public final class Universe {
     this.alreadyInitialized = false;
 
     this.blockClasses = new DynamicObject[4];
+
+    superclassSym = symbolFor("superclass");
+    nameSym = symbolFor("name");
+    instanceFieldsSym = symbolFor("instanceFields");
+    instanceInvokablesSym = symbolFor("instanceInvokables");
+
+    // class which get's its own class set only later (to break up cyclic dependencies)
+    Shape initClassShape = SClass.createClassShape(null, this);
+    initClassFactory = initClassShape.createFactory();
 
     // Allocate the Metaclass classes
     metaclassClass = newMetaclassClass();
@@ -309,7 +320,7 @@ public final class Universe {
 
     // Lookup the initialize invokable on the system class
     SInvokable initialize = SClass.lookupInvokable(SObject.getSOMClass(clazz),
-        symbolFor(selector));
+        symbolFor(selector), this);
     return initialize.invoke(new Object[] {clazz});
   }
 
@@ -324,7 +335,7 @@ public final class Universe {
 
     // Lookup the initialize invokable on the system class
     SInvokable initialize = SClass.lookupInvokable(
-        systemClass, symbolFor("initialize:"));
+        systemClass, symbolFor("initialize:"), this);
 
     return initialize.invoke(new Object[] {systemObject,
         SArray.create(arguments)});
@@ -342,7 +353,7 @@ public final class Universe {
     DynamicObject nilObject = Nil.nilObject;
 
     // Setup the class reference for the nil object
-    SObject.internalSetNilClass(nilObject, nilClass);
+    SObject.internalSetNilClass(nilObject, nilClass, this);
 
     // Initialize the system classes.
     initializeSystemClass(objectClass, null, "Object");
@@ -427,7 +438,7 @@ public final class Universe {
 
   @TruffleBoundary
   public DynamicObject newClass(final DynamicObject classClass) {
-    return SClass.create(classClass);
+    return SClass.create(classClass, this);
   }
 
   @TruffleBoundary
@@ -442,9 +453,9 @@ public final class Universe {
   }
 
   @TruffleBoundary
-  private static DynamicObject newMetaclassClass() {
-    DynamicObject result = SClass.createWithoutClass();
-    SClass.internalSetClass(result, SClass.create(result));
+  private DynamicObject newMetaclassClass() {
+    DynamicObject result = SClass.createWithoutClass(this);
+    SClass.internalSetClass(result, SClass.create(result, this), this);
     return result;
   }
 
@@ -456,34 +467,36 @@ public final class Universe {
 
   @TruffleBoundary
   private DynamicObject newSystemClass() {
-    return SClass.create(SClass.create(metaclassClass));
+    return SClass.create(SClass.create(metaclassClass, this), this);
   }
 
   private void initializeSystemClass(final DynamicObject systemClass,
       final DynamicObject superClass, final String name) {
     // Initialize the superclass hierarchy
     if (superClass != null) {
-      SClass.setSuperClass(systemClass, superClass);
-      SClass.setSuperClass(SObject.getSOMClass(systemClass), SObject.getSOMClass(superClass));
+      SClass.setSuperClass(systemClass, superClass, this);
+      SClass.setSuperClass(SObject.getSOMClass(systemClass), SObject.getSOMClass(superClass),
+          this);
     } else {
-      SClass.setSuperClass(SObject.getSOMClass(systemClass), classClass);
+      SClass.setSuperClass(SObject.getSOMClass(systemClass), classClass, this);
     }
 
     // Initialize the array of instance fields
-    SClass.setInstanceFields(systemClass, SArray.create(new Object[0]));
-    SClass.setInstanceFields(SObject.getSOMClass(systemClass), SArray.create(new Object[0]));
+    SClass.setInstanceFields(systemClass, SArray.create(new Object[0]), this);
+    SClass.setInstanceFields(SObject.getSOMClass(systemClass), SArray.create(new Object[0]),
+        this);
 
     // Initialize the array of instance invokables
-    SClass.setInstanceInvokables(systemClass, SArray.create(new Object[0]));
+    SClass.setInstanceInvokables(systemClass, SArray.create(new Object[0]), this);
     SClass.setInstanceInvokables(SObject.getSOMClass(systemClass),
-        SArray.create(new Object[0]));
+        SArray.create(new Object[0]), this);
 
     // Initialize the name of the system class
-    SClass.setName(systemClass, symbolFor(name));
-    SClass.setName(SObject.getSOMClass(systemClass), symbolFor(name + " class"));
+    SClass.setName(systemClass, symbolFor(name), this);
+    SClass.setName(SObject.getSOMClass(systemClass), symbolFor(name + " class"), this);
 
     // Insert the system class into the dictionary of globals
-    setGlobal(SClass.getName(systemClass), systemClass);
+    setGlobal(SClass.getName(systemClass, this), systemClass);
   }
 
   @TruffleBoundary
@@ -562,7 +575,7 @@ public final class Universe {
 
     // Load primitives if class defines them, or try to load optional
     // primitives defined for system classes.
-    if (SClass.hasPrimitives(result) || isSystemClass) {
+    if (SClass.hasPrimitives(result, this) || isSystemClass) {
       primitives.loadPrimitives(result, !isSystemClass);
     }
   }
@@ -570,10 +583,10 @@ public final class Universe {
   @TruffleBoundary
   private void loadSystemClass(final DynamicObject systemClass) {
     // Load the system class
-    DynamicObject result = loadClass(SClass.getName(systemClass), systemClass);
+    DynamicObject result = loadClass(SClass.getName(systemClass, this), systemClass);
 
     if (result == null) {
-      throw new IllegalStateException(SClass.getName(systemClass).getString()
+      throw new IllegalStateException(SClass.getName(systemClass, this).getString()
           + " class could not be loaded. "
           + "It is likely that the class path has not been initialized properly. "
           + "Please set system property 'system.class.path' or "
@@ -592,8 +605,8 @@ public final class Universe {
         DynamicObject result = som.compiler.SourcecodeCompiler.compileClass(cpEntry,
             name.getString(), systemClass, this);
         if (printAST) {
-          Disassembler.dump(SObject.getSOMClass(result));
-          Disassembler.dump(result);
+          Disassembler.dump(SObject.getSOMClass(result), this);
+          Disassembler.dump(result, this);
         }
         return result;
 
@@ -612,7 +625,7 @@ public final class Universe {
     DynamicObject result = som.compiler.SourcecodeCompiler.compileClass(stmt,
         null, this);
     if (printAST) {
-      Disassembler.dump(result);
+      Disassembler.dump(result, this);
     }
     return result;
   }
@@ -709,6 +722,13 @@ public final class Universe {
   @CompilationFinal private DynamicObject trueClass;
   @CompilationFinal private DynamicObject falseClass;
   @CompilationFinal private DynamicObject systemClass;
+
+  public final SSymbol superclassSym;
+  public final SSymbol nameSym;
+  public final SSymbol instanceFieldsSym;
+  public final SSymbol instanceInvokablesSym;
+
+  public final DynamicObjectFactory initClassFactory;
 
   private final HashMap<SSymbol, Association> globals;
 

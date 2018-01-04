@@ -8,7 +8,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 import bd.primitives.Primitive;
 import som.interpreter.Types;
-import som.interpreter.nodes.nary.BinaryExpressionNode;
 import som.interpreter.nodes.nary.BinaryExpressionNode.BinarySystemOperation;
 import som.interpreter.nodes.nary.TernaryExpressionNode.TernarySystemOperation;
 import som.interpreter.nodes.nary.UnaryExpressionNode;
@@ -84,11 +83,11 @@ public final class ObjectPrims {
 
   @GenerateNodeFactory
   @Primitive(className = "Object", primitive = "instVarNamed:", selector = "instVarNamed:")
-  public abstract static class InstVarNamedPrim extends BinaryExpressionNode {
+  public abstract static class InstVarNamedPrim extends BinarySystemOperation {
     @Specialization
     public final Object doSObject(final DynamicObject receiver, final SSymbol fieldName) {
       CompilerAsserts.neverPartOfCompilation();
-      return receiver.get(SObject.getFieldIndex(receiver, fieldName), Nil.nilObject);
+      return receiver.get(SObject.getFieldIndex(receiver, fieldName, universe), Nil.nilObject);
     }
   }
 

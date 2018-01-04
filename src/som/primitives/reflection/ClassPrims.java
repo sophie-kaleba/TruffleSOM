@@ -7,7 +7,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import bd.primitives.Primitive;
-import som.interpreter.nodes.nary.UnaryExpressionNode;
+import som.interpreter.nodes.nary.UnaryExpressionNode.UnarySystemOperation;
 import som.vmobjects.SAbstractObject;
 import som.vmobjects.SArray;
 import som.vmobjects.SClass;
@@ -18,44 +18,44 @@ public class ClassPrims {
   @GenerateNodeFactory
   @ImportStatic(SClass.class)
   @Primitive(className = "Class", primitive = "name")
-  public abstract static class NamePrim extends UnaryExpressionNode {
+  public abstract static class NamePrim extends UnarySystemOperation {
     @Specialization(guards = "isSClass(receiver)")
     public final SAbstractObject doSClass(final DynamicObject receiver) {
       CompilerAsserts.neverPartOfCompilation();
-      return SClass.getName(receiver);
+      return SClass.getName(receiver, universe);
     }
   }
 
   @GenerateNodeFactory
   @ImportStatic(SClass.class)
   @Primitive(className = "Class", primitive = "superclass")
-  public abstract static class SuperClassPrim extends UnaryExpressionNode {
+  public abstract static class SuperClassPrim extends UnarySystemOperation {
     @Specialization(guards = "isSClass(receiver)")
     public final Object doSClass(final DynamicObject receiver) {
       CompilerAsserts.neverPartOfCompilation();
-      return SClass.getSuperClass(receiver);
+      return SClass.getSuperClass(receiver, universe);
     }
   }
 
   @GenerateNodeFactory
   @ImportStatic(SClass.class)
   @Primitive(className = "Class", primitive = "methods")
-  public abstract static class InstanceInvokablesPrim extends UnaryExpressionNode {
+  public abstract static class InstanceInvokablesPrim extends UnarySystemOperation {
     @Specialization(guards = "isSClass(receiver)")
     public final SArray doSClass(final DynamicObject receiver) {
       CompilerAsserts.neverPartOfCompilation();
-      return SClass.getInstanceInvokables(receiver);
+      return SClass.getInstanceInvokables(receiver, universe);
     }
   }
 
   @GenerateNodeFactory
   @ImportStatic(SClass.class)
   @Primitive(className = "Class", primitive = "fields")
-  public abstract static class InstanceFieldsPrim extends UnaryExpressionNode {
+  public abstract static class InstanceFieldsPrim extends UnarySystemOperation {
     @Specialization(guards = "isSClass(receiver)")
     public final SArray doSClass(final DynamicObject receiver) {
       CompilerAsserts.neverPartOfCompilation();
-      return SClass.getInstanceFields(receiver);
+      return SClass.getInstanceFields(receiver, universe);
     }
   }
 }

@@ -46,12 +46,12 @@ public abstract class SuperDispatchNode extends AbstractDispatchNode {
       if (classSide) {
         clazz = SObject.getSOMClass(clazz);
       }
-      return (DynamicObject) SClass.getSuperClass(clazz);
+      return (DynamicObject) SClass.getSuperClass(clazz, universe);
     }
 
     private CachedDispatchNode specialize() {
       CompilerAsserts.neverPartOfCompilation("SuperDispatchNode.create2");
-      SInvokable method = SClass.lookupInvokable(getLexicalSuperClass(), selector);
+      SInvokable method = SClass.lookupInvokable(getLexicalSuperClass(), selector, universe);
 
       if (method == null) {
         throw new RuntimeException("Currently #dnu with super sent is not yet implemented. ");

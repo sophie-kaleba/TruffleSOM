@@ -33,6 +33,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import som.interpreter.Invokable;
+import som.interpreter.SomLanguage;
 import som.vm.Universe;
 
 
@@ -124,7 +125,9 @@ public abstract class SInvokable extends SAbstractObject {
       return "Method(nil>>" + getSignature().toString() + ")";
     }
 
-    return "Method(" + SClass.getName(getHolder()).getString() + ">>" + getSignature().toString() + ")";
+    Universe u = SomLanguage.getCurrentContext();
+    return "Method(" + SClass.getName(getHolder(), u).getString() + ">>"
+        + getSignature().toString() + ")";
   }
 
   // Private variable holding Truffle runtime information

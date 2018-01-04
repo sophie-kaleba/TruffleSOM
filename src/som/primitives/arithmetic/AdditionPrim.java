@@ -2,12 +2,15 @@ package som.primitives.arithmetic;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
+import bd.nodes.WithContext;
 import bd.primitives.Primitive;
+import som.vm.Universe;
 import som.vmobjects.SClass;
 import som.vmobjects.SSymbol;
 
@@ -17,7 +20,18 @@ import som.vmobjects.SSymbol;
 @Primitive(className = "Integer", primitive = "+")
 @Primitive(className = "Double", primitive = "+")
 @Primitive(selector = "+")
-public abstract class AdditionPrim extends ArithmeticPrim {
+public abstract class AdditionPrim extends ArithmeticPrim
+    implements WithContext<AdditionPrim, Universe> {
+
+  @CompilationFinal private Universe universe;
+
+  @Override
+  public AdditionPrim initialize(final Universe universe) {
+    assert this.universe == null && universe != null;
+    this.universe = universe;
+    return this;
+  }
+
   @Specialization(rewriteOn = ArithmeticException.class)
   public final long doLong(final long left, final long argument) {
     return Math.addExact(left, argument);
@@ -76,7 +90,7 @@ public abstract class AdditionPrim extends ArithmeticPrim {
 
   @Specialization(guards = "isSClass(right)")
   public final String doString(final String left, final DynamicObject right) {
-    return left + SClass.getName(right).getString();
+    return left + SClass.getName(right, universe).getString();
   }
 
   @Specialization

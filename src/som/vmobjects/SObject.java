@@ -24,9 +24,6 @@
 
 package som.vmobjects;
 
-import som.vm.NotYetImplementedException;
-import som.vm.Universe;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
@@ -36,7 +33,6 @@ import com.oracle.truffle.api.object.Shape;
 
 import som.vm.NotYetImplementedException;
 import som.vm.Universe;
-import som.vm.constants.Nil;
 
 
 public final class SObject {
@@ -47,11 +43,13 @@ public final class SObject {
 
   // Object shape with property for a class
   protected static final Shape INIT_NIL_SHAPE = LAYOUT.createShape(SOBJECT_TYPE);
-  protected static final DynamicObjectFactory NIL_DUMMY_FACTORY = INIT_NIL_SHAPE.createFactory();
 
-  private SObject() { } // this class cannot be instantiated, it provides only static helpers
+  protected static final DynamicObjectFactory NIL_DUMMY_FACTORY =
+      INIT_NIL_SHAPE.createFactory();
 
-  public static final Shape createObjectShapeForClass(final DynamicObject clazz) {
+  private SObject() {} // this class cannot be instantiated, it provides only static helpers
+
+  public static Shape createObjectShapeForClass(final DynamicObject clazz) {
     return LAYOUT.createShape(SOBJECT_TYPE, clazz);
   }
 
@@ -93,13 +91,14 @@ public final class SObject {
     return (DynamicObject) obj.getShape().getSharedData();
   }
 
-  public static void internalSetNilClass(final DynamicObject obj, final DynamicObject value) {
+  public static void internalSetNilClass(final DynamicObject obj, final DynamicObject value,
+      final Universe universe) {
     assert obj.getShape().getObjectType() == SOBJECT_TYPE;
     CompilerAsserts.neverPartOfCompilation("SObject.setClass");
     assert obj != null;
     assert value != null;
 
-    assert !Universe.current().objectSystemInitialized : "This should really only be used during initialization of object system";
+    assert !universe.objectSystemInitialized : "This should really only be used during initialization of object system";
 
     Shape withoutClass = obj.getShape();
     Shape withClass = withoutClass.createSeparateShape(value);
@@ -107,8 +106,9 @@ public final class SObject {
     obj.setShapeAndGrow(withoutClass, withClass);
   }
 
-  public static long getFieldIndex(final DynamicObject obj, final SSymbol fieldName) {
-    return SClass.lookupFieldIndex(getSOMClass(obj), fieldName);
+  public static long getFieldIndex(final DynamicObject obj, final SSymbol fieldName,
+      final Universe universe) {
+    return SClass.lookupFieldIndex(getSOMClass(obj), fieldName, universe);
   }
 
   public static int getNumberOfFields(final DynamicObject obj) {

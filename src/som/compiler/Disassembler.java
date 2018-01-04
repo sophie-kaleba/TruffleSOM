@@ -36,12 +36,12 @@ import som.vmobjects.SInvokable;
 public final class Disassembler {
 
   @TruffleBoundary
-  public static void dump(final DynamicObject cl) {
-    for (int i = 0; i < SClass.getNumberOfInstanceInvokables(cl); i++) {
-      SInvokable inv = SClass.getInstanceInvokable(cl, i);
+  public static void dump(final DynamicObject cl, final Universe universe) {
+    for (int i = 0; i < SClass.getNumberOfInstanceInvokables(cl, universe); i++) {
+      SInvokable inv = SClass.getInstanceInvokable(cl, i, universe);
 
       // output header and skip if the Invokable is a Primitive
-      Universe.errorPrint(SClass.getName(cl).toString() + ">>"
+      Universe.errorPrint(SClass.getName(cl, universe).toString() + ">>"
           + inv.getSignature().toString() + " = ");
 
       // output actual method

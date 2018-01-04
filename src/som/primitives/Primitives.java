@@ -129,10 +129,11 @@ public final class Primitives extends PrimitiveLoader<Universe, ExpressionNode, 
 
   public void loadPrimitives(final DynamicObject clazz, final boolean displayWarning) {
     HashMap<SSymbol, Specializer<Universe, ExpressionNode, SSymbol>> prims =
-        primitives.get(SClass.getName(clazz));
+        primitives.get(SClass.getName(clazz, context));
     if (prims == null) {
       if (displayWarning) {
-        Universe.errorPrintln("No primitives found for " + SClass.getName(clazz).getString());
+        Universe.errorPrintln(
+            "No primitives found for " + SClass.getName(clazz, context).getString());
       }
       return;
     }
@@ -145,11 +146,12 @@ public final class Primitives extends PrimitiveLoader<Universe, ExpressionNode, 
         target = clazz;
       }
 
-      SInvokable ivk = SClass.lookupInvokable(target, e.getKey());
+      SInvokable ivk = SClass.lookupInvokable(target, e.getKey(), context);
       assert ivk != null : "Lookup of " + e.getKey().toString() + " failed in "
-          + SClass.getName(target).getString() + ". Can't install a primitive for it.";
+          + SClass.getName(target, context).getString()
+          + ". Can't install a primitive for it.";
       SInvokable prim = constructPrimitive(e.getKey(), context.getLanguage(), e.getValue());
-      SClass.addInstancePrimitive(target, prim, displayWarning);
+      SClass.addInstancePrimitive(target, prim, displayWarning, context);
     }
   }
 

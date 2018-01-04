@@ -54,7 +54,7 @@ public final class SourcecodeCompiler {
 
     DynamicObject result = compile(parser, systemClass, universe);
 
-    SSymbol cname = SClass.getName(result);
+    SSymbol cname = SClass.getName(result, universe);
     String cnameC = cname.getString();
 
     if (file != cnameC) {

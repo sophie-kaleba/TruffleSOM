@@ -271,8 +271,9 @@ public final class Parser {
             " could not be loaded", NONE, this);
       }
 
-      cgenc.setInstanceFieldsOfSuper(SClass.getInstanceFields(superClass));
-      cgenc.setClassFieldsOfSuper(SClass.getInstanceFields(SObject.getSOMClass(superClass)));
+      cgenc.setInstanceFieldsOfSuper(SClass.getInstanceFields(superClass, universe));
+      cgenc.setClassFieldsOfSuper(
+          SClass.getInstanceFields(SObject.getSOMClass(superClass), universe));
     }
   }
 

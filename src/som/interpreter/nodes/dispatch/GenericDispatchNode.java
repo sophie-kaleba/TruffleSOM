@@ -36,7 +36,7 @@ public final class GenericDispatchNode extends AbstractDispatchNode {
 
     Object rcvr = arguments[0];
     DynamicObject rcvrClass = (DynamicObject) getClass.executeEvaluated(null, rcvr);
-    SInvokable method = SClass.lookupInvokable(rcvrClass, selector);
+    SInvokable method = SClass.lookupInvokable(rcvrClass, selector, universe);
 
     CallTarget target;
     Object[] args;

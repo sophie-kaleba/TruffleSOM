@@ -15,11 +15,12 @@ public abstract class SAbstractObject {
   @Override
   public String toString() {
     CompilerAsserts.neverPartOfCompilation();
-    DynamicObject clazz = getSOMClass(SomLanguage.getCurrentContext());
+    Universe u = SomLanguage.getCurrentContext();
+    DynamicObject clazz = getSOMClass(u);
     if (clazz == null) {
       return "an Object(clazz==null)";
     }
-    return "a " + SClass.getName(clazz).getString();
+    return "a " + SClass.getName(clazz, u).getString();
   }
 
   public static final Object send(
@@ -30,7 +31,7 @@ public abstract class SAbstractObject {
 
     // Lookup the invokable
     SInvokable invokable = SClass.lookupInvokable(
-        Types.getClassOf(arguments[0], universe), selector);
+        Types.getClassOf(arguments[0], universe), selector, universe);
 
     return invokable.invoke(arguments);
   }

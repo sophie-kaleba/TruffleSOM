@@ -82,7 +82,7 @@ public class Shell {
 
           // Lookup the run: method
           SInvokable shellMethod = SClass.lookupInvokable(
-              myClass, universe.symbolFor("run:"));
+              myClass, universe.symbolFor("run:"), universe);
 
           // Invoke the run method
           it = shellMethod.invoke(new Object[] {myObject, it});

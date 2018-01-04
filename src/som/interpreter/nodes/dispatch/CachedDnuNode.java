@@ -43,7 +43,7 @@ public final class CachedDnuNode extends AbstractCachedDispatchNode {
   public static CallTarget getDnuCallTarget(final DynamicObject rcvrClass,
       final Universe universe) {
     return SClass.lookupInvokable(rcvrClass,
-        universe.symbolFor("doesNotUnderstand:arguments:")).getCallTarget();
+        universe.symbolFor("doesNotUnderstand:arguments:"), universe).getCallTarget();
   }
 
   protected Object performDnu(final Object[] arguments, final Object rcvr) {
