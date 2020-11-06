@@ -129,10 +129,7 @@ public final class Universe implements IdProvider<SSymbol> {
     builder.arguments(SomLanguage.LANG_ID, arguments);
 
     Context context = builder.build();
-
-    Object affinity = AffinityLock.acquireLock();
     Value returnCode = context.eval(SomLanguage.START);
-    ((AffinityLock) affinity).release();
     return returnCode;
   }
 
@@ -349,6 +346,7 @@ public final class Universe implements IdProvider<SSymbol> {
   }
 
   private Object execute(final String[] arguments) {
+    Object affinity = null;
     initializeObjectSystem();
 
     // Start the shell if no filename is given
@@ -360,8 +358,14 @@ public final class Universe implements IdProvider<SSymbol> {
     // Lookup the initialize invokable on the system class
     SInvokable initialize = systemClass.lookupInvokable(symbolFor("initialize:"));
 
-    return initialize.invoke(new Object[] {systemObject,
-        SArray.create(arguments)});
+    try {
+      affinity = AffinityLock.acquireLock();
+      return initialize.invoke(new Object[] {systemObject,
+          SArray.create(arguments)});
+    }
+    finally {
+      ((AffinityLock) affinity).release();
+    }
   }
 
   public void initializeObjectSystem() {
