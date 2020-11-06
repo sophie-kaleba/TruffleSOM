@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
+import net.openhft.affinity.AffinityLock;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Context.Builder;
 import org.graalvm.polyglot.Value;
@@ -129,7 +130,9 @@ public final class Universe implements IdProvider<SSymbol> {
 
     Context context = builder.build();
 
+    Object affinity = AffinityLock.acquireLock();
     Value returnCode = context.eval(SomLanguage.START);
+    ((AffinityLock) affinity).release();
     return returnCode;
   }
 
