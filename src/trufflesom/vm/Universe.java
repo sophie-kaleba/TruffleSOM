@@ -346,7 +346,6 @@ public final class Universe implements IdProvider<SSymbol> {
   }
 
   private Object execute(final String[] arguments) {
-    Object affinity = null;
     initializeObjectSystem();
 
     // Start the shell if no filename is given
@@ -358,8 +357,8 @@ public final class Universe implements IdProvider<SSymbol> {
     // Lookup the initialize invokable on the system class
     SInvokable initialize = systemClass.lookupInvokable(symbolFor("initialize:"));
 
+    Object affinity = AffinityLock.acquireLock();
     try {
-      affinity = AffinityLock.acquireLock();
       return initialize.invoke(new Object[] {systemObject,
           SArray.create(arguments)});
     }
