@@ -21,6 +21,8 @@ parser.add_argument('-d', '--debug', help='wait for debugger to attach',
                     dest='debug', action='store_true', default=False)
 parser.add_argument('-t', '--num-threads', help='number of threads to be used',
                     dest='threads', default=None)
+parser.add_argument('-b', '--benchmark', help='run graalsom for benchmarks',
+                    dest='benchmarks', action='store_true', default=False)
 
 explore = parser.add_argument_group('Explore', 'Investigate Execution')
 explore.add_argument('-i', '--igv', help='dump compilation details to IGV',
@@ -59,6 +61,8 @@ parser.add_argument('-A', '--no-assert', help='execute with assertions disabled'
                     dest='assert_', action='store_false', default=True)
 parser.add_argument('-B', '--no-background', help='disable background compilation',
                     dest='background_compilation', action='store_false', default=True)
+parser.add_argument('-P', '--no-pinning', help='disable pinning of threads to cores',
+                    dest='use_pinning', action='store_false', default=True)
 parser.add_argument('-C', '--no-compilation', help='disable Truffle compilation',
                     dest='no_compilation', action='store_true', default=False)
 parser.add_argument('-G', '--interpreter', help='run without Graal',
@@ -167,7 +171,12 @@ CLASSPATH = (BASE_DIR + '/build/classes:'
 
 BOOT_CLASSPATH = ('-Xbootclasspath/a:'
              + TRUFFLE_DIR + '/sdk/mxbuild/dists/jdk1.8/graal-sdk.jar:'
-             + TRUFFLE_DIR + '/truffle/mxbuild/dists/jdk1.8/truffle-api.jar')
+             + TRUFFLE_DIR + '/truffle/mxbuild/dists/jdk1.8/truffle-api.jar:'
+             + BASE_DIR + '/libs/affinity.jar:'
+             + BASE_DIR + '/libs/slf4j-api.jar:'
+             + BASE_DIR + '/libs/slf4j-simple.jar:'
+             + BASE_DIR + '/libs/jna-platform.jar:'
+             + BASE_DIR + '/libs/jna.jar')
 
 if args.use_libgraal:
   GRAAL_JAVA_8_FLAGS = ['-XX:+UseJVMCICompiler', '-XX:+UseJVMCINativeLibrary',
@@ -191,7 +200,7 @@ TWEAK_INLINING = ['-Dpolyglot.engine.CompilationThreshold=191',
                   '-Dpolyglot.engine.InliningMaxCallerSize=10000',
                   '-Dpolyglot.engine.SplittingMaxCalleeSize=100000']
 
-JAVA_ARGS = ['-server']
+JAVA_ARGS = ['-server', '-XX:+UseThreadPriorities']
 
 if JAVA_MAJOR_VERSION == 8:
   JAVA_ARGS += ['-d64']
@@ -231,7 +240,7 @@ if args.debug:
     flags += ['-Xdebug',
               '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000']
 if not args.interpreter and (args.igv or args.igv_to_file):
-    flags += ['-Dpolyglot.engine.Dump=Truffle,TruffleTree:2']
+    flags += ['-Dgraal.Dump=Truffle,TruffleTree:2']
 if  not args.interpreter and args.only_igv:
     flags += ['-Dpolyglot.engine.MethodFilter=' + args.only_igv]
 if not args.interpreter and args.igv_to_file:
@@ -293,6 +302,27 @@ if args.java_properties:
 
 if args.java_args:
     JAVA_ARGS += ['-' + property for property in args.java_args]
+
+SOM_ARGS = ['trufflesom.vm.Universe', '-cp', 'Smalltalk']
+
+if args.benchmarks:
+	SOM_ARGS = ['trufflesom.vm.Universe', '-cp', 'Smalltalk:Examples/Benchmarks/DeltaBlue:Examples/Benchmarks/GraphSearch:Examples/Benchmarks/GCBenchmark:Examples/Benchmarks/Json:Examples/Benchmarks/LanguageFeatures:Examples/Benchmarks/NBody:Examples/Benchmarks/Polymorphism:Examples/Benchmarks/Richards:Examples/Benchmarks/CachePollution']
+
+if args.use_pinning:
+  ## check whether there are any known restrictions to core usage
+  ## that needs to be considered for pinning
+  core_set = os.environ.get('REBENCH_DENOISE_CORE_SET', None)
+  if core_set:
+    ## calculate the mask for cores, as hexadecimal representation
+    core_set = core_set.split("-")
+    core_set[0] = int(core_set[0])
+    core_set[1] = int(core_set[1])
+    bit_mask = 0
+    for c in range(core_set[0], core_set[1] + 1):
+      bit_mask += 1 << c
+    flags += ['-Daffinity.reserved=' + hex(bit_mask).lstrip("0x")]
+else:
+  flags += ['-Dsom.usePinning=false']
 
 all_args = JAVA_ARGS + ['-classpath', CLASSPATH] + [BOOT_CLASSPATH] + flags + SOM_ARGS + unknown_args + args.args
 
