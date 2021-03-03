@@ -1,5 +1,6 @@
 package trufflesom.primitives.basics;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -94,6 +95,18 @@ public final class SystemPrims {
     @Specialization(guards = "receiver == universe.getSystemObject()")
     public final long doSObject(final SObject receiver) {
       return System.nanoTime() / 1000L - startMicroTime;
+    }
+  }
+
+  @GenerateNodeFactory
+  @Primitive(className = "System", primitive = "phase:enabled:")
+  public abstract static class PhasePrim extends TernarySystemOperation {
+    @Specialization(guards = "receiver == universe.getSystemObject()")
+    public final Object doSObject(final SObject receiver, final long phaseID, final boolean enabled) {
+      if (enabled) {
+        Universe.phaseID = (int) phaseID;
+      }
+      return receiver;
     }
   }
 

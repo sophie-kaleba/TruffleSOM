@@ -67,6 +67,7 @@ import trufflesom.vmobjects.SSymbol;
 public final class Universe implements IdProvider<SSymbol> {
 
   public static final boolean FailOnMissingOptimizations = false;
+  public static int phaseID = 0;
 
   public static void callerNeedsToBeOptimized(final String msg) {
     if (FailOnMissingOptimizations) {

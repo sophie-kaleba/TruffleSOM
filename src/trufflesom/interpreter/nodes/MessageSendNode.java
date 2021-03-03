@@ -1,7 +1,10 @@
 package trufflesom.interpreter.nodes;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.GenerateLibrary;
+import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.source.SourceSection;
@@ -11,6 +14,7 @@ import bd.primitives.nodes.PreevaluatedExpression;
 import bd.tools.nodes.Invocation;
 import trufflesom.interpreter.TruffleCompiler;
 import trufflesom.interpreter.nodes.dispatch.AbstractDispatchNode;
+import trufflesom.interpreter.nodes.dispatch.CachedDispatchNode;
 import trufflesom.interpreter.nodes.dispatch.DispatchChain.Cost;
 import trufflesom.interpreter.nodes.dispatch.GenericDispatchNode;
 import trufflesom.interpreter.nodes.dispatch.SuperDispatchNode;
@@ -209,26 +213,41 @@ public final class MessageSendNode {
 
     private final SSymbol selector;
 
-    @Child private AbstractDispatchNode dispatchNode;
+    // here I should have the possibility of having several dispatch chains (at first 2?)
+      // for which I switch between depending
+    @Child private AbstractDispatchNode dispatchNode0;
+    @Child private AbstractDispatchNode dispatchNode1;
+//    @Children private AbstractDispatchNode[] dispatchNode = new AbstractDispatchNode[2];
 
     private GenericMessageSendNode(final SSymbol selector, final ExpressionNode[] arguments,
         final AbstractDispatchNode dispatchNode) {
       super(arguments);
       this.selector = selector;
-      this.dispatchNode = dispatchNode;
+      this.dispatchNode0 = insert(dispatchNode);
+      this.dispatchNode1 = insert((AbstractDispatchNode) dispatchNode.deepCopy());
     }
 
     @Override
     public Object doPreEvaluated(final VirtualFrame frame,
         final Object[] arguments) {
-      return dispatchNode.executeDispatch(frame, arguments);
-    }
+      if (Universe.phaseID == 0 ) {
+        return dispatchNode0.executeDispatch(frame, arguments);
+      }
+      else {
+        return dispatchNode1.executeDispatch(frame, arguments);
+      }
+      }
 
     public void replaceDispatchListHead(
         final GenericDispatchNode replacement) {
       CompilerAsserts.neverPartOfCompilation();
-      dispatchNode.replace(replacement);
-    }
+      if (Universe.phaseID == 0 ) {
+        dispatchNode0.replace(replacement);
+      }
+      else {
+        dispatchNode1.replace(replacement);
+      }
+      }
 
     @Override
     public String toString() {
@@ -237,7 +256,12 @@ public final class MessageSendNode {
 
     @Override
     public NodeCost getCost() {
-      return Cost.getCost(dispatchNode);
+      if (Universe.phaseID == 0 ) {
+        return Cost.getCost(dispatchNode0);
+      }
+      else {
+        return Cost.getCost(dispatchNode1);
+      }
     }
 
     @Override
