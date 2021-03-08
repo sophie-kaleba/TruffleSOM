@@ -1,6 +1,7 @@
 package trufflesom.interpreter.nodes.dispatch;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -48,7 +49,7 @@ public abstract class SuperDispatchNode extends AbstractDispatchNode {
     }
 
     private CachedDispatchNode specialize() {
-      CompilerAsserts.neverPartOfCompilation("SuperDispatchNode.create2");
+      CompilerAsserts.neverPartOfCompilation();
       SInvokable method = getLexicalSuperClass().lookupInvokable(selector);
 
       if (method == null) {
@@ -62,6 +63,7 @@ public abstract class SuperDispatchNode extends AbstractDispatchNode {
     @Override
     public Object executeDispatch(
         final VirtualFrame frame, final Object[] arguments) {
+      CompilerDirectives.transferToInterpreterAndInvalidate();
       return specialize().executeDispatch(frame, arguments);
     }
   }
